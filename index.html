@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ショート仕立て｜SOUND SHORT EDITOR</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+<header class="header">
+  <div class="brand"><div class="brand-icon" aria-hidden="true">♫</div><div><div class="brand-name">ショート仕立て</div><div class="brand-sub">SOUND SHORT EDITOR</div></div></div>
+  <div class="header-note">曲の真ん中を切り取って、<br>始まりと終わりを、きれいにつなぐ。</div>
+  <div class="spacer"></div><button id="helpButton" class="header-btn">？ 使い方</button><button id="topAdd" class="header-btn filled">＋ 曲を追加</button>
+</header>
+<div class="layout">
+<aside class="sidebar">
+  <p class="caps">MUSIC LIBRARY / 音源</p>
+  <div class="drop" id="dropZone"><div class="drop-icon">♫</div><strong>音声ファイルをドロップ</strong><small>WAV / MP3 / M4A など</small><button id="chooseFiles" class="upload-btn">ファイルを選ぶ</button></div>
+  <div class="file-head"><span class="caps" style="margin:0">TRACK LIST</span><span class="file-count" id="fileCount">0 曲</span></div>
+  <div class="file-list" id="fileList"></div>
+  <div class="sidebar-bottom"><button id="clearAll" class="ghost-btn full">すべての音源をクリア</button><p class="side-help"><strong>☕ Chocolate × Vanilla</strong><br>曲の読み込み、編集、試聴、WAVへの書き出しはブラウザ内で完結。音声データは外部に送信されません。</p></div>
+</aside>
+<main class="main">
+  <div class="heading"><div><div class="eyebrow">✦ SHORT EDIT WORKSPACE</div><h1 id="trackTitle" class="h1">フル尺から、ちょうどいいショート版を。</h1><div id="trackDesc" class="subtitle">音声を読み込むと、曲全体の波形が表示されます。</div></div><span id="trackBadge" class="badge">READY TO START</span></div>
+  <div class="empty-panel" id="emptyState"><div class="empty-icon">✂</div><strong>大好きな曲を、短く仕立て直す。</strong><p>フル尺の曲を読み込み、真ん中の不要な区間を選ぶだけ。前半と後半をクロスフェードでつないで、自然なショート版を作成できます。</p><button id="emptyAdd" class="upload-btn">＋ 音声を読み込む</button></div>
+  <div id="workspace" hidden>
+    <section class="panel">
+      <div class="panel-title"><span>✂ カットする区間を決める</span><small>縦線をドラッグして前半・後半の境目を指定</small></div>
+      <div class="panel-inner">
+        <div class="flow-legend"><div class="flow-label kept-a"><span>01</span><strong>残す前半</strong></div><div class="flow-label removed"><span>✕</span><strong>カットする中間</strong></div><div class="flow-label kept-b"><span>02</span><strong>残す後半</strong></div></div>
+        <canvas class="wave-canvas" id="waveCanvas" aria-label="曲全体の波形。左と右のカットマーカーをドラッグして、削除する中間部分を指定します。"></canvas>
+        <div class="wave-legend"><span><i class="color-dot keep"></i>使用する音声</span><span><i class="color-dot remove-dot"></i>削除する区間</span><span><i class="color-dot green"></i>カット開始</span><span><i class="color-dot orange"></i>カット終了</span><span><i class="color-dot cursor-dot"></i>再生・指定位置</span></div>
+        <div class="wave-footer"><span id="rangeText">中間 0:00.00 — 0:00.00</span><strong id="selectedDuration">カット 0:00.00</strong></div>
+        <div class="range-grid">
+          <div class="range-item"><div class="range-top"><span class="range-name"><i class="inline-dot green"></i> 前半はここまで</span><span class="range-tag">CUT IN</span></div><div class="time-control"><button class="stepper" data-step="in:-0.01" title="0.01秒戻す">−</button><input id="cutInInput" class="number" type="number" min="0" step="0.01" value="0" aria-label="前半の終了時刻（秒）"><button class="stepper" data-step="in:0.01" title="0.01秒進める">＋</button><span class="time-unit">秒</span></div><button id="markIn" class="mark-btn">＋ 波形のカーソル位置で設定</button></div>
+          <div class="range-item"><div class="range-top"><span class="range-name"><i class="inline-dot orange"></i> 後半はここから</span><span class="range-tag">CUT OUT</span></div><div class="time-control"><button class="stepper" data-step="out:-0.01" title="0.01秒戻す">−</button><input id="cutOutInput" class="number" type="number" min="0" step="0.01" value="0" aria-label="後半の開始時刻（秒）"><button class="stepper" data-step="out:0.01" title="0.01秒進める">＋</button><span class="time-unit">秒</span></div><button id="markOut" class="mark-btn">＋ 波形のカーソル位置で設定</button></div>
+        </div>
+        <div class="detail-head"><strong>接続点を拡大して微調整</strong><label for="detailZoom">表示範囲 <span id="detailZoomValue">±1.5秒</span></label><input type="range" id="detailZoom" class="mini-slider" min="0.1" max="5" step="0.1" value="1.5"></div>
+        <div class="detail-row"><div class="detail-box"><div class="detail-box-head"><span>前半の終点 · 拡大波形</span><strong id="detailInTime">0.00秒</strong></div><canvas class="detail-canvas" id="inDetail" aria-label="前半の終点を微調整"></canvas><div class="detail-caption">ドラッグして0.01秒より細かく調整可能</div></div><div class="detail-box"><div class="detail-box-head"><span>後半の始点 · 拡大波形</span><strong id="detailOutTime">0.00秒</strong></div><canvas class="detail-canvas" id="outDetail" aria-label="後半の始点を微調整"></canvas><div class="detail-caption">ドラッグして0.01秒より細かく調整可能</div></div></div>
+      </div>
+    </section>
+    <section class="panel"><div class="panel-title"><span>✦ 前半から後半へのつなぎ目</span><small>1回だけつなぎます・繰り返しはしません</small></div><div class="panel-inner"><div class="seam-visual"><canvas id="seamCanvas" class="seam-canvas" aria-label="前半と後半のクロスフェード曲線"></canvas><div class="seam-caption"><span><strong class="accent-green">●</strong> 前半のおわり <span class="arrow">→</span> <strong class="accent-orange">●</strong> 後半のはじまり</span><strong id="seamDesc">クロスフェード 0.20秒</strong></div></div><p class="setting-foot">前半の最後と後半の最初を少し重ねます。書き出す曲は「前半 → クロスフェード → 後半」の1曲になり、最後まで再生すると停止します。</p></div></section>
+    <section class="panel"><div class="panel-title"><span>▶ 聴き比べ・試聴</span><small>「つなぎ目だけ試聴」で切り替わりをチェック</small></div><div class="panel-inner"><div class="play-row"><button id="playOriginal" class="play-btn">▷ 元のフル尺</button><button id="playShort" class="play-btn primary">▶ ショート版を試聴</button><button id="playJoin" class="play-btn">♫ つなぎ目だけ</button><button id="playPause" class="play-btn" disabled>Ⅱ 一時停止</button><button id="stopPlay" class="play-btn" disabled>■ 停止</button></div><div class="transport"><span id="currentTime" class="mono">0:00.00</span><input id="seekBar" type="range" min="0" max="1000" value="0" step="1" disabled aria-label="再生位置"><span id="totalTime" class="mono">0:00.00</span></div><div id="playMessage" class="list-note">カット位置を調整してから「つなぎ目だけ」を押すと、前半と後半がつながるところだけ確認できます。</div></div></section>
+  </div>
+</main>
+<aside class="settings">
+  <h2>✎ ショート版の設定</h2><p class="hint">設定は音源ごとに保持されます（ページを閉じるまで）。</p>
+  <div class="settings-card"><div class="settings-title">目標の長さ <span class="tag">DURATION</span></div><div class="setting-foot top-note">おおよその尺からカット位置を自動配置できます。仕上げは波形で微調整してください。</div><div class="preset-grid"><button class="preset" data-target="15">15秒</button><button class="preset" data-target="30">30秒</button><button class="preset" data-target="45">45秒</button><button class="preset" data-target="60">60秒</button><button class="preset" data-target="90">90秒</button><button class="preset" data-target="120">120秒</button></div><div class="custom-target"><label for="targetInput">指定の秒数</label><input type="number" class="number" id="targetInput" min="1" step="0.1" value="60"><button id="applyTarget" class="small-primary">適用</button></div><div class="setting-foot">前半を60%、後半を40%残す位置を目安に配置します。</div></div>
+  <div class="settings-card"><div class="settings-title">クロスフェード <span class="tag">SMOOTH CUT</span></div><div class="form-group"><label for="fadeSlider" class="form-label"><span>音を重ねる時間</span><strong id="fadeValue">0.20 秒</strong></label><input id="fadeSlider" type="range" class="slider" min="0" max="5000" step="10" value="200"><div class="slider-scale"><span>0秒（単純カット）</span><span id="fadeMax">5秒</span></div><div class="setting-foot">短めならリズムが明瞭、長めなら音の切り替わりがなめらかになります。まず0.1〜0.5秒がおすすめ。</div></div><div class="form-group"><label for="fadeShape" class="form-label">フェードカーブ</label><select id="fadeShape" class="form-select"><option value="equal">イコールパワー（自然な音量感）</option><option value="linear">リニア（重なり控えめ）</option></select></div><button id="applyAll" class="ghost-btn full">このフェード設定を全曲に適用</button></div>
+  <div class="settings-card"><div class="settings-title">拍の位置に合わせる <span class="tag">OPTION</span></div><div class="form-group"><label class="form-label" for="bpmInput">BPM（手動指定）</label><input class="number bpm-number" id="bpmInput" type="number" min="30" max="300" step="0.1" value="120"></div><div class="form-group"><label for="snapUnit" class="form-label">スナップ間隔</label><select id="snapUnit" class="form-select"><option value="1">1拍ごと</option><option value="2">2拍ごと</option><option value="4" selected>4拍ごと（1小節の目安）</option><option value="8">8拍ごと</option><option value="16">16拍ごと</option></select></div><label class="check-line"><input type="checkbox" id="snapEnabled"> <span>マーカーを拍にスナップ</span></label><div class="setting-foot">BPMは自動検出されません。拍子・曲頭の位置によってはずれるので、耳で必ず確認してください。</div></div>
+  <div class="settings-card"><div class="settings-title">書き出し形式 <span class="tag">EXPORT</span></div><div class="form-group"><label for="formatSelect" class="form-label">音声形式</label><select id="formatSelect" class="form-select"><option value="wav">WAV（非圧縮・高音質）</option><option value="mp3">MP3（軽量・オンライン変換）</option></select></div><div class="form-group"><label for="rateSelect" class="form-label">サンプルレート</label><select id="rateSelect" class="form-select"><option value="original">読み込み時のサンプルレート</option><option value="44100">44,100 Hz</option><option value="48000">48,000 Hz</option></select></div><div id="wavGroup" class="form-group"><span class="muted">WAV：16-bit PCM / モノラル・ステレオ</span></div><div id="mp3Group" class="form-group" hidden><label for="bitrateSelect" class="form-label">MP3の音質</label><select id="bitrateSelect" class="form-select"><option value="192">192 kbps</option><option value="256" selected>256 kbps</option><option value="320">320 kbps</option></select><p class="setting-foot">MP3エンコード用ライブラリをCDNから読み込みます。ネット接続が必要です。</p></div></div>
+  <div class="settings-card"><div class="settings-title">試聴音量 <span class="tag">MONITOR</span></div><label for="volumeSlider" class="form-label"><span>再生音量</span><strong id="volumeValue">75%</strong></label><input id="volumeSlider" type="range" class="slider" min="0" max="100" value="75" step="1"><div class="slider-scale"><span>0%</span><span>100%</span></div></div>
+  <div class="summary"><div class="summary-kicker">できあがりの長さ</div><div class="summary-time" id="summaryDuration">0:00.00</div><div class="summary-line"><span>フル尺</span><strong id="originalDuration">0:00.00</strong></div><div class="summary-line"><span>中間をカット</span><strong id="removedDuration">−0:00.00</strong></div><div class="summary-line"><span>音の重ね合わせ</span><strong id="overlapDuration">−0.00 秒</strong></div><div class="summary-line separator"><span>短縮率</span><strong id="shortRatio">0%</strong></div></div>
+  <div class="export-wrap"><button id="exportOne" class="export-button" disabled>↓ この曲をショート版で保存</button><button id="exportAll" class="export-button dark" disabled>↓ 全曲をZIPで保存</button><div class="progress" id="progressTrack" hidden><div id="progressFill"></div></div><div class="status" id="exportStatus">WAVはオフラインで保存できます</div></div>
+</aside>
+</div>
+</div>
+<input class="file-input" id="filePicker" type="file" multiple accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/*">
+<div id="modalRoot"></div><div id="toastBox" class="toastbox" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
